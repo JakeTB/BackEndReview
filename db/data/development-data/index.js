@@ -1,4 +1,12 @@
-exports.articles = require(".//articles");
-exports.comments = require("./comments");
-exports.topics = require("./topics");
-exports.users = require("./users");
+const articles = require(".//articles");
+const comments = require("./comments");
+const topics = require("./topics");
+const users = require("./users");
+
+const testData = {
+  articleData: articles,
+  commentData: comments,
+  topicsData: topics,
+  usersData: users
+};
+module.exports = testData;
