@@ -1,11 +1,11 @@
-articles = require(".//articles");
-comments = require("./comments");
-topics = require("./topics");
-users = require("./users");
+const articles = require("./articles.js");
+const comments = require("./comments.js");
+const topics = require("./topics.js");
+const users = require("./users.js");
 
 const testData = {
-  articleData: articles,
-  commentData: comments,
+  articlesData: articles,
+  commentsData: comments,
   topicsData: topics,
   usersData: users
 };
