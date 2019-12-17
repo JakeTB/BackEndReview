@@ -2,6 +2,13 @@ process.env.NODE_ENV = "test";
 const { app } = require("../app");
 const request = require("supertest");
 const { expect } = require("chai");
+const knex = require("../db/connection");
+beforeEach(() => {
+  return knex.seed.run();
+});
+after(() => {
+  return knex.destroy();
+});
 describe("API", () => {
   describe("/api", () => {
     describe("/topics", () => {

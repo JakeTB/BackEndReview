@@ -1,7 +1,4 @@
 exports.formatDates = list => {
-  if (!list) return [];
-  if (!list.length) return [];
-
   let returnArray = list.map(object => {
     let copyObject = { ...object };
     let dateToFormat = copyObject.created_at;

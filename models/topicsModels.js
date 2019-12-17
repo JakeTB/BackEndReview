@@ -1,3 +1,5 @@
 const connection = require("../db/connection");
-
-const getTopics = () => {};
+exports.getTopics = () => {
+  console.log("inside the model");
+  return connection.select("*").from("topic");
+};
