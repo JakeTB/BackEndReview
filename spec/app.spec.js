@@ -10,7 +10,7 @@ after(() => {
   return knex.destroy();
 });
 describe("API", () => {
-  describe("Errors:", () => {
+  describe("API-errors:", () => {
     describe("Status: 404", () => {
       it("Recieves a status of 404", () => {
         return request(app)
@@ -29,7 +29,7 @@ describe("API", () => {
   });
   describe("/api", () => {
     describe("/topics", () => {
-      describe("GET:", () => {
+      describe("GET:/api/topics", () => {
         it("Status:200", () => {
           return request(app)
             .get("/api/topics")
@@ -43,27 +43,27 @@ describe("API", () => {
               expect(body.topics).to.be.a("array");
             });
         });
-      });
-      describe("Errors", () => {
-        describe("Status: 404", () => {
-          it("Recieves a status of 404", () => {
-            return request(app)
-              .get("/api/tpics")
-              .expect(404);
-          });
-          it("Recieves an error message", () => {
-            return request(app)
-              .get("/api/tpics")
-              .expect(404)
-              .then(({ body }) => {
-                expect(body.message).to.equal("Route not found");
-              });
+        describe("GET: /api/topics-errors", () => {
+          describe("Status: 404", () => {
+            it("Recieves a status of 404", () => {
+              return request(app)
+                .get("/api/tpics")
+                .expect(404);
+            });
+            it("Recieves an error message", () => {
+              return request(app)
+                .get("/api/tpics")
+                .expect(404)
+                .then(({ body }) => {
+                  expect(body.message).to.equal("Route not found");
+                });
+            });
           });
         });
       });
     });
-    describe("/users", () => {
-      describe("GET:", () => {
+    describe("/api/users", () => {
+      describe("GET:/api/users/:username", () => {
         describe("Status:200", () => {
           it("Recieves a status of 200", () => {
             return request(app)
@@ -84,32 +84,32 @@ describe("API", () => {
               });
           });
         });
-      });
-      describe("Errors", () => {
-        describe("Status: 404", () => {
-          it("Recieves a status of 404", () => {
-            return request(app)
-              .get("/api/usr")
-              .expect(404);
-          });
-          it("Recieves an error message", () => {
-            return request(app)
-              .get("/api/usr")
-              .expect(404)
-              .then(({ body }) => {
-                expect(body.message).to.equal("Route not found");
-              });
-          });
-          it("Sends 404 because user does not exist", () => {
-            return request(app)
-              .get("/api/user/turtlesmurtle")
-              .expect(404);
+        describe("GET:/api/users/:username - Errors", () => {
+          describe("Status: 404", () => {
+            it("Recieves a status of 404", () => {
+              return request(app)
+                .get("/api/usr")
+                .expect(404);
+            });
+            it("Recieves an error message", () => {
+              return request(app)
+                .get("/api/usr")
+                .expect(404)
+                .then(({ body }) => {
+                  expect(body.message).to.equal("Route not found");
+                });
+            });
+            it("Sends 404 because user does not exist", () => {
+              return request(app)
+                .get("/api/user/turtlesmurtle")
+                .expect(404);
+            });
           });
         });
       });
     });
-    describe("/articles", () => {
-      describe("GET:", () => {
+    describe("/api/articles", () => {
+      describe("GET:/api/articles/:articleid", () => {
         describe("Status:200", () => {
           it("Recieves a status of 200", () => {
             return request(app)
@@ -138,69 +138,177 @@ describe("API", () => {
                 expect(body.articleObject[0].article_id).to.equal(1);
               });
           });
-        });
-      });
-      describe("PATCH", () => {
-        describe("Status:200", () => {
-          it("Recieves a status of of 201", () => {
-            return request(app)
-              .patch("/api/articles/1")
-              .expect(201);
-          });
-          it("Updates the article object and returns the new one", () => {
-            return request(app)
-              .patch("/api/articles/1")
-              .send({ inc_votes: 1 })
-              .expect(201)
-              .then(({ body }) => {
-                expect(body.updatedArticle[0]).to.be.an("object");
-                expect(body.updatedArticle[0]).to.contain.keys(
-                  "title",
-                  "body",
-                  "votes",
-                  "author"
-                );
+          describe("GET:/api/articles", () => {
+            describe("Status:200", () => {
+              it("Recieves a status of 200", () => {
+                return request(app)
+                  .get("/api/articles")
+                  .expect(200);
               });
+              it("Should respond with an array of article objects", () => {
+                return request(app)
+                  .get("/api/articles")
+                  .expect(200)
+                  .then(({ body }) => {
+                    expect(body.articleArray).to.be.an("array");
+                  });
+              });
+              it("article objects should have the correct keys", () => {
+                return request(app)
+                  .get("/api/articles")
+                  .expect(200)
+                  .then(({ body }) => {
+                    expect(body.articleArray[0]).to.contain.keys(
+                      "title",
+                      "body",
+                      "votes",
+                      "author"
+                    );
+                  });
+              });
+            });
           });
         });
-      });
-      describe("POST", () => {
-        it("Recieves a status of of 201", () => {
-          return request(app)
-            .post("/api/articles/1")
-            .expect(201);
+        describe("GET", () => {
+          describe("articles/article:id/comments", () => {
+            describe("Status: 200", () => {
+              it("Recieve a status of 200", () => {
+                return request(app)
+                  .get("/api/articles/1/comments")
+                  .expect(200);
+              });
+              it("Should recieve an array of comments from the given article", () => {
+                return request(app)
+                  .get("/api/articles/1/comments")
+                  .expect(200)
+                  .then(({ body }) => {
+                    expect(body.commentsArray[0]).to.contain.keys(
+                      "comment_id",
+                      "author",
+                      "votes"
+                    );
+                  });
+              });
+              it("Should recieve an array of comments from the given article with the correct keys", () => {
+                return request(app)
+                  .get("/api/articles/1/comments")
+                  .expect(200)
+                  .then(({ body }) => {
+                    expect(body.commentsArray[0]).to.contain.keys(
+                      "comment_id",
+                      "author",
+                      "votes"
+                    );
+                  });
+              });
+            });
+          });
         });
       });
     });
-    describe("Errors", () => {
-      describe("Status: 404", () => {
-        it("Recieves a status of 404", () => {
+
+    describe("PATCH", () => {
+      describe("Status:200", () => {
+        it("Recieves a status of of 201", () => {
           return request(app)
-            .get("/api/artcle")
-            .expect(404);
+            .patch("/api/articles/1")
+            .expect(201);
         });
-        it("Recieves an error message", () => {
+        it("Updates the article object and returns the new one", () => {
           return request(app)
-            .get("/api/arcle")
-            .expect(404)
+            .patch("/api/articles/1")
+            .send({ inc_votes: 1 })
+            .expect(201)
             .then(({ body }) => {
-              expect(body.message).to.equal("Route not found");
+              expect(body.updatedArticle[0]).to.be.an("object");
+              expect(body.updatedArticle[0]).to.contain.keys(
+                "title",
+                "body",
+                "votes",
+                "author"
+              );
             });
         });
       });
-      describe("Status:400", () => {
-        it("Recieves a status of 400", () => {
+    });
+    describe("POST", () => {
+      it("Inserts a new comment into the comments table, and returns the posted comment", () => {
+        return request(app)
+          .post("/api/articles/1/comments")
+          .send({ username: "butter_bridge", body: "He's a swell guy" })
+          .expect(201)
+          .then(({ body }) => {
+            expect(body.newComment[0]).to.contain.keys(
+              "author",
+              "comment_id",
+              "article_id",
+              "votes",
+              "created_at",
+              "body"
+            );
+          });
+      });
+    });
+  });
+
+  describe("Errors", () => {
+    describe("Status: 404", () => {
+      it("Recieves a status of 404", () => {
+        return request(app)
+          .get("/api/artcle")
+          .expect(404);
+      });
+      it("Recieves an error message", () => {
+        return request(app)
+          .get("/api/arcle")
+          .expect(404)
+          .then(({ body }) => {
+            expect(body.message).to.equal("Route not found");
+          });
+      });
+    });
+    describe("Status:400", () => {
+      it("Recieves a status of 400", () => {
+        return request(app)
+          .get("/api/articles/hello")
+          .expect(400);
+      });
+      it("Recieves a message which states that its a bad request", () => {
+        return request(app)
+          .get("/api/articles/hello")
+          .expect(400)
+          .then(({ body }) => {
+            expect(body.message).to.equal("Bad Request");
+          });
+      });
+    });
+  });
+  describe.only("/api/comments", () => {
+    describe("PATCH:/api/comments/:comment_id", () => {
+      describe("Status:200", () => {
+        it("Recieves a status of 200", () => {
           return request(app)
-            .get("/api/articles/hello")
-            .expect(400);
+            .patch("/api/comments/1")
+            .send({ inc_votes: 2 })
+            .expect(200);
         });
-        it("Recieves a message which states that its a bad request", () => {
+        it("The updated comment should have the same comment id", () => {
           return request(app)
-            .get("/api/articles/hello")
-            .expect(400)
+            .patch("/api/comments/1")
+            .send({ inc_votes: 2 })
+            .expect(200)
             .then(({ body }) => {
-              expect(body.message).to.equal("Bad Request");
+              expect(body.comment[0].comment_id).to.equal(1);
             });
+        });
+      });
+    });
+    describe("DELETE:/api/comments/:comment_id", () => {
+      describe("Status:204", () => {
+        it("Recieves a status code of 204", () => {
+          return request(app)
+            .delete("/api/comments/1")
+            .expect(204);
         });
       });
     });

@@ -1,6 +1,5 @@
 const connection = require("../db/connection");
 exports.getArticleInfo = article_id => {
-  console.log("inside");
   return connection
     .select("*")
     .from("articles")
@@ -12,4 +11,21 @@ exports.patchArticleInfo = (article_id, inc_votes) => {
     .from("articles")
     .where({ article_id })
     .returning("*");
+};
+exports.postArticleComments = (article_id, author, body) => {
+  const insertObj = { article_id, author, body };
+
+  return connection("comments")
+    .insert(insertObj)
+    .returning("*");
+};
+
+exports.getArticleComments = article_id => {
+  return connection
+    .select("*")
+    .from("comments")
+    .where({ article_id });
+};
+exports.getAllArticles = () => {
+  return connection.select("*").from("articles");
 };
