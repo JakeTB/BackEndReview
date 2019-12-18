@@ -1,3 +1,7 @@
-exports.getUserInformation = () => {
-    console.log("Made it to the model")
-}
+const connection = require("../db/connection");
+exports.getUserInformation = username => {
+  return connection
+    .select("*")
+    .from("user")
+    .where({ username });
+};
