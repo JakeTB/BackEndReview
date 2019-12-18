@@ -108,7 +108,7 @@ describe("API", () => {
         });
       });
     });
-    describe("/api/articles", () => {
+    describe.only("/api/articles", () => {
       describe("GET:/api/articles/:articleid", () => {
         describe("Status:200", () => {
           it("Recieves a status of 200", () => {
@@ -169,38 +169,37 @@ describe("API", () => {
             });
           });
         });
-        describe("GET", () => {
-          describe("articles/article:id/comments", () => {
-            describe("Status: 200", () => {
-              it("Recieve a status of 200", () => {
-                return request(app)
-                  .get("/api/articles/1/comments")
-                  .expect(200);
-              });
-              it("Should recieve an array of comments from the given article", () => {
-                return request(app)
-                  .get("/api/articles/1/comments")
-                  .expect(200)
-                  .then(({ body }) => {
-                    expect(body.commentsArray[0]).to.contain.keys(
-                      "comment_id",
-                      "author",
-                      "votes"
-                    );
-                  });
-              });
-              it("Should recieve an array of comments from the given article with the correct keys", () => {
-                return request(app)
-                  .get("/api/articles/1/comments")
-                  .expect(200)
-                  .then(({ body }) => {
-                    expect(body.commentsArray[0]).to.contain.keys(
-                      "comment_id",
-                      "author",
-                      "votes"
-                    );
-                  });
-              });
+
+        describe("GET: articles/article:id/comments", () => {
+          describe("Status: 200", () => {
+            it("Recieve a status of 200", () => {
+              return request(app)
+                .get("/api/articles/1/comments")
+                .expect(200);
+            });
+            it("Should recieve an array of comments from the given article", () => {
+              return request(app)
+                .get("/api/articles/1/comments")
+                .expect(200)
+                .then(({ body }) => {
+                  expect(body.commentsArray[0]).to.contain.keys(
+                    "comment_id",
+                    "author",
+                    "votes"
+                  );
+                });
+            });
+            it("Should recieve an array of comments from the given article with the correct keys", () => {
+              return request(app)
+                .get("/api/articles/1/comments")
+                .expect(200)
+                .then(({ body }) => {
+                  expect(body.commentsArray[0]).to.contain.keys(
+                    "comment_id",
+                    "author",
+                    "votes"
+                  );
+                });
             });
           });
         });
@@ -283,7 +282,7 @@ describe("API", () => {
       });
     });
   });
-  describe.only("/api/comments", () => {
+  describe("/api/comments", () => {
     describe("PATCH:/api/comments/:comment_id", () => {
       describe("Status:200", () => {
         it("Recieves a status of 200", () => {
@@ -301,6 +300,45 @@ describe("API", () => {
               expect(body.comment[0].comment_id).to.equal(1);
             });
         });
+        it("Should increase the vote count but the passed property", () => {
+          return request(app)
+            .patch("/api/comments/1")
+            .send({ inc_votes: 2 })
+            .expect(200)
+            .then(({ body }) => {
+              expect(body.comment[0].votes).to.equal(18);
+            });
+        });
+        it("Should decrease the vote count but the passed property", () => {
+          return request(app)
+            .patch("/api/comments/1")
+            .send({ inc_votes: -2 })
+            .expect(200)
+            .then(({ body }) => {
+              expect(body.comment[0].votes).to.equal(14);
+            });
+        });
+      });
+      describe("Errors", () => {
+        describe("Status:404", () => {
+          it("Recieve a status code of 404", () => {
+            return request(app)
+              .patch("/api/coments/1")
+              .expect(404);
+          });
+          xit("Requested resource does not exist", () => {
+            return request(app)
+              .patch("/api/comments/1000")
+              .expect(404);
+          });
+        });
+        describe("Status:400", () => {
+          it("Should recieve a status code of 400", () => {
+            return request(app)
+              .patch("/api/comments/jack")
+              .expect(400);
+          });
+        });
       });
     });
     describe("DELETE:/api/comments/:comment_id", () => {
@@ -309,6 +347,30 @@ describe("API", () => {
           return request(app)
             .delete("/api/comments/1")
             .expect(204);
+        });
+      });
+      describe("Errors", () => {
+        describe("Status 404", () => {
+          it("Recieves a status code of 404", () => {
+            return request(app)
+              .delete("/api/commmments/1")
+              .expect(404);
+          });
+        });
+        describe("Status 400", () => {
+          it("Recieve a status of 400 if given a bad request", () => {
+            return request(app)
+              .delete("/api/comments/hello")
+              .expect(400);
+          });
+          it("Should send a message detaling a bad request", () => {
+            return request(app)
+              .delete("/api/comments/hello")
+              .expect(400)
+              .then(({ body }) => {
+                expect(body.message).to.equal("Bad Request");
+              });
+          });
         });
       });
     });
