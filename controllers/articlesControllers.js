@@ -16,9 +16,8 @@ exports.sendArticleInfo = (req, res, next) => {
 };
 exports.updateArticleInfo = (req, res, next) => {
   const { article_id } = req.params;
-  const { inc_votes } = req.body;
 
-  patchArticleInfo(article_id, inc_votes)
+  patchArticleInfo(article_id, req.body)
     .then(article => {
       res.status(201).send({ updatedArticle: article });
     })
@@ -36,7 +35,7 @@ exports.createArticleComment = (req, res, next) => {
 };
 exports.sendArticleComments = (req, res, next) => {
   const { sort_by } = req.query;
-  console.log(req.query);
+
   const { article_id } = req.params;
   getArticleComments(article_id, sort_by)
     .then(comments => {

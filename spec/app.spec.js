@@ -46,7 +46,7 @@ describe("API", () => {
               expect(body.topics).to.be.a("array");
             });
         });
-        describe("GET: /api/topics-errors", () => {
+        describe("Errors", () => {
           describe("Status: 404", () => {
             it("Recieves a status of 404", () => {
               return request(app)
@@ -59,6 +59,16 @@ describe("API", () => {
                 .expect(404)
                 .then(({ body }) => {
                   expect(body.message).to.equal("Route not found");
+                });
+            });
+          });
+          describe.only("Status: 405", () => {
+            it("If passed an invalid method will response with a 405 error", () => {
+              return request(app)
+                .patch("/api/topics")
+                .expect(405)
+                .then(({ body }) => {
+                  expect(body.message).to.equal("Method not found");
                 });
             });
           });
@@ -141,134 +151,304 @@ describe("API", () => {
                 expect(body.articleObject[0].article_id).to.equal(1);
               });
           });
-          describe("GET:/api/articles", () => {
-            describe("Status:200", () => {
-              it("Recieves a status of 200", () => {
-                return request(app)
-                  .get("/api/articles")
-                  .expect(200);
-              });
-              it("Should respond with an array of article objects", () => {
-                return request(app)
-                  .get("/api/articles")
-                  .expect(200)
-                  .then(({ body }) => {
-                    expect(body.articleArray).to.be.an("array");
-                  });
-              });
-              it("article objects should have the correct keys", () => {
-                return request(app)
-                  .get("/api/articles")
-                  .expect(200)
-                  .then(({ body }) => {
-                    expect(body.articleArray[0]).to.contain.keys(
-                      "title",
-                      "body",
-                      "votes",
-                      "author"
-                    );
-                  });
-              });
+        });
+        describe("Errors:", () => {
+          describe("Status 404", () => {
+            it("If the requested article does not exist, but it is a valid response recieves a 404", () => {
+              return request(app)
+                .get("/api/articles/200")
+                .expect(404);
+            });
+            it("Recieves an error message detailing that the article has not been found", () => {
+              return request(app)
+                .get("/api/articles/200")
+                .expect(404)
+                .then(({ body }) => {
+                  expect(body.message).to.equal(
+                    "No article found for article id 200"
+                  );
+                });
             });
           });
-        });
-
-        describe.only("GET: articles/article:id/comments", () => {
-          describe("Status: 200", () => {
-            it("Recieve a status of 200", () => {
+          describe("Status:400", () => {
+            it("If sent a bad request, recieves a status code of 400", () => {
               return request(app)
-                .get("/api/articles/1/comments")
-                .expect(200);
+                .get("/api/articles/hello")
+                .expect(400);
             });
-            it("Should recieve an array of comments from the given article", () => {
+            it("If sent a bad request, recieves a status code of 400 and a message", () => {
               return request(app)
-                .get("/api/articles/1/comments")
-                .expect(200)
+                .get("/api/articles/hello")
+                .expect(400)
                 .then(({ body }) => {
-                  expect(body.commentsArray[0]).to.contain.keys(
-                    "comment_id",
-                    "author",
-                    "votes"
-                  );
-                });
-            });
-            it("Should recieve an array of comments from the given article with the correct keys", () => {
-              return request(app)
-                .get("/api/articles/1/comments")
-                .expect(200)
-                .then(({ body }) => {
-                  expect(body.commentsArray[0]).to.contain.keys(
-                    "comment_id",
-                    "author",
-                    "votes"
-                  );
-                });
-            });
-            it("The default sort order of the comments is created_at, in descedning order", () => {
-              return request(app)
-                .get("/api/articles/1/comments")
-                .expect(200)
-                .then(({ body }) => {
-                  expect(body.commentsArray).to.be.sortedBy("created_at", {
-                    descending: true
-                  });
-                });
-            });
-            it("Can accept a order by query that sorts the comments by any valid comments, and defaults the order to descending", () => {
-              return request(app)
-                .get("/api/articles/1/comments?sort_by=votes")
-                .expect(200)
-                .then(({ body }) => {
-                  expect(body.commentsArray).to.be.sortedBy("votes", {
-                    descending: true
-                  });
+                  expect(body.message).to.equal("Bad Request");
                 });
             });
           });
         });
       });
-    });
-
-    describe("PATCH", () => {
-      describe("Status:200", () => {
-        it("Recieves a status of of 201", () => {
-          return request(app)
-            .patch("/api/articles/1")
-            .expect(201);
-        });
-        it("Updates the article object and returns the new one", () => {
-          return request(app)
-            .patch("/api/articles/1")
-            .send({ inc_votes: 1 })
-            .expect(201)
-            .then(({ body }) => {
-              expect(body.updatedArticle[0]).to.be.an("object");
-              expect(body.updatedArticle[0]).to.contain.keys(
-                "title",
-                "body",
-                "votes",
-                "author"
-              );
-            });
+      describe("GET:/api/articles", () => {
+        describe("Status:200", () => {
+          it("Recieves a status of 200", () => {
+            return request(app)
+              .get("/api/articles")
+              .expect(200);
+          });
+          it("Should respond with an array of article objects", () => {
+            return request(app)
+              .get("/api/articles")
+              .expect(200)
+              .then(({ body }) => {
+                expect(body.articleArray).to.be.an("array");
+              });
+          });
+          it("article objects should have the correct keys", () => {
+            return request(app)
+              .get("/api/articles")
+              .expect(200)
+              .then(({ body }) => {
+                expect(body.articleArray[0]).to.contain.keys(
+                  "title",
+                  "body",
+                  "votes",
+                  "author"
+                );
+              });
+          });
         });
       });
-    });
-    describe("POST", () => {
-      it("Inserts a new comment into the comments table, and returns the posted comment", () => {
-        return request(app)
-          .post("/api/articles/1/comments")
-          .send({ username: "butter_bridge", body: "He's a swell guy" })
-          .expect(201)
-          .then(({ body }) => {
-            expect(body.newComment[0]).to.contain.keys(
-              "author",
-              "comment_id",
-              "article_id",
-              "votes",
-              "created_at",
-              "body"
-            );
+      describe("PATCH:/articles/;article_Id", () => {
+        describe("Status:200", () => {
+          it("Recieves a status of of 201", () => {
+            return request(app)
+              .patch("/api/articles/1")
+              .send({ inc_votes: 1 })
+              .expect(201);
           });
+          it("Updates the article object and returns the new one", () => {
+            return request(app)
+              .patch("/api/articles/1")
+              .send({ inc_votes: 1 })
+              .expect(201)
+              .then(({ body }) => {
+                expect(body.updatedArticle[0]).to.be.an("object");
+                expect(body.updatedArticle[0]).to.contain.keys(
+                  "title",
+                  "body",
+                  "votes",
+                  "author"
+                );
+              });
+          });
+        });
+        describe("Errors:", () => {
+          describe("404:", () => {
+            it("Recieves a status code of 404 if the path is not found", () => {
+              return request(app)
+                .patch("/api/articlearres/1")
+                .send({ inc_votes: 1 })
+                .expect(404);
+            });
+            it("Receices an error message stating that the page is not found", () => {
+              return request(app)
+                .patch("/api/articlearres/1")
+                .send({ inc_votes: 1 })
+                .expect(404)
+                .then(({ body }) => {
+                  expect(body.message).to.equal("Route not found");
+                });
+            });
+            it("Recieces a status of 404 and an error message if the path is good but the resource does not exist", () => {
+              return request(app)
+                .patch("/api/articles/50")
+                .send({ inc_votes: 1 })
+                .expect(404)
+                .then(({ body }) => {
+                  expect(body.message).to.equal(
+                    "No article found for article id 50"
+                  );
+                });
+            });
+          });
+          describe("400:", () => {
+            it("Recieves a status code of 400 when sent a bad request", () => {
+              return request(app)
+                .patch("/api/articles/healasa")
+                .send({ inc_votes: 1 })
+                .expect(400);
+            });
+            it("If passed an invalid id, recieves an error message detailing it as a bad request", () => {
+              return request(app)
+                .patch("/api/articles/healasa")
+                .send({ inc_votes: 1 })
+                .expect(400)
+                .then(({ body }) => {
+                  expect(body.message).to.equal("Bad Request");
+                });
+            });
+            it("If passed a malformed body, or a bdy with missing fields returns with a bad request", () => {
+              return request(app)
+                .patch("/api/articles/1")
+                .send({})
+                .expect(400)
+                .then(({ body }) => {
+                  expect(body.message).to.equal("Malformed or incorrect body");
+                });
+            });
+          });
+        });
+      });
+      describe("POST:/api/articles/:article/comments", () => {
+        describe("Status 201:", () => {
+          it("Inserts a new comment into the comments table, and returns the posted comment", () => {
+            return request(app)
+              .post("/api/articles/1/comments")
+              .send({ username: "butter_bridge", body: "He's a swell guy" })
+              .expect(201)
+              .then(({ body }) => {
+                expect(body.newComment[0]).to.contain.keys(
+                  "author",
+                  "comment_id",
+                  "article_id",
+                  "votes",
+                  "created_at",
+                  "body"
+                );
+              });
+          });
+          it("Inserted comment has the correct body", () => {
+            return request(app)
+              .post("/api/articles/1/comments")
+              .send({ username: "butter_bridge", body: "He's a swell guy" })
+              .expect(201)
+              .then(({ body }) => {
+                expect(body.newComment[0].body).to.equal("He's a swell guy");
+              });
+          });
+          it("Inserted comment has the author body", () => {
+            return request(app)
+              .post("/api/articles/1/comments")
+              .send({ username: "butter_bridge", body: "He's a swell guy" })
+              .expect(201)
+              .then(({ body }) => {
+                expect(body.newComment[0].author).to.equal("butter_bridge");
+              });
+          });
+        });
+        describe("Errors:", () => {
+          describe("Status:404", () => {
+            it("If sent an incorrect route returns with a status message of 404", () => {
+              return request(app)
+                .post("/api/articles/1/coments")
+                .send({ username: "butter_bridge", body: "He's a swell guy" })
+                .expect(404);
+            });
+          });
+          describe("Status: 400", () => {
+            it("If sent a correct route wth a resource that does not exist returns with a 400", () => {
+              return request(app)
+                .post("/api/articles/90/comments")
+                .send({ username: "butter_bridge", body: "He's a swell guy" })
+                .expect(400)
+                .then(({ body }) => {
+                  expect(body.message).to.equal(
+                    "Bad request, id does not exsist"
+                  );
+                });
+            });
+            it("If sent a body missing an author key, returns a 400", () => {
+              return request(app)
+                .post("/api/articles/2/comments")
+                .send({ body: "He's a swell guy" })
+                .expect(400)
+                .then(({ body }) => {
+                  expect(body.message).to.equal("No author");
+                });
+            });
+            it("If sent a body missing an body key, returns a 400", () => {
+              return request(app)
+                .post("/api/articles/2/comments")
+                .send({ username: "butter_bridge" })
+                .expect(400)
+                .then(({ body }) => {
+                  expect(body.message).to.equal("No body");
+                });
+            });
+            it("If sent an empty body object returns with a 400", () => {
+              return request(app)
+                .post("/api/articles/2/comments")
+                .send({})
+                .expect(400)
+                .then(({ body }) => {
+                  expect(body.message).to.equal("Empty post");
+                });
+            });
+            it("If sent a post from a non-existant user returns with a 400", () => {
+              return request(app)
+                .post("/api/articles/2/comments")
+                .send({ username: "example2", body: "He's a swell guy" })
+                .expect(400)
+                .then(({ body }) => {
+                  expect(body.message).to.equal(
+                    "Bad request, id does not exsist"
+                  );
+                });
+            });
+          });
+        });
+      });
+      describe("GET: articles/article:id/comments", () => {
+        describe("Status: 200", () => {
+          it("Recieve a status of 200", () => {
+            return request(app)
+              .get("/api/articles/1/comments")
+              .expect(200);
+          });
+          it("Should recieve an array of comments from the given article", () => {
+            return request(app)
+              .get("/api/articles/1/comments")
+              .expect(200)
+              .then(({ body }) => {
+                expect(body.commentsArray[0]).to.contain.keys(
+                  "comment_id",
+                  "author",
+                  "votes"
+                );
+              });
+          });
+          it("Should recieve an array of comments from the given article with the correct keys", () => {
+            return request(app)
+              .get("/api/articles/1/comments")
+              .expect(200)
+              .then(({ body }) => {
+                expect(body.commentsArray[0]).to.contain.keys(
+                  "comment_id",
+                  "author",
+                  "votes"
+                );
+              });
+          });
+          it("The default sort order of the comments is created_at, in descedning order", () => {
+            return request(app)
+              .get("/api/articles/1/comments")
+              .expect(200)
+              .then(({ body }) => {
+                expect(body.commentsArray).to.be.sortedBy("created_at", {
+                  descending: true
+                });
+              });
+          });
+          it("Can accept a order by query that sorts the comments by any valid comments, and defaults the order to descending", () => {
+            return request(app)
+              .get("/api/articles/1/comments?sort_by=votes")
+              .expect(200)
+              .then(({ body }) => {
+                expect(body.commentsArray).to.be.sortedBy("votes", {
+                  descending: true
+                });
+              });
+          });
+        });
       });
     });
   });
