@@ -35,8 +35,10 @@ exports.createArticleComment = (req, res, next) => {
     .catch(next);
 };
 exports.sendArticleComments = (req, res, next) => {
+  const { sort_by } = req.query;
+  console.log(req.query);
   const { article_id } = req.params;
-  getArticleComments(article_id)
+  getArticleComments(article_id, sort_by)
     .then(comments => {
       res.status(200).send({ commentsArray: comments });
     })

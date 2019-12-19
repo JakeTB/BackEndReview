@@ -1,7 +1,10 @@
 process.env.NODE_ENV = "test";
 const { app } = require("../app");
 const request = require("supertest");
-const { expect } = require("chai");
+const chai = require("chai");
+const { expect } = chai;
+const chaiSorted = require("chai-sorted");
+chai.use(chaiSorted);
 const knex = require("../db/connection");
 beforeEach(() => {
   return knex.seed.run();
@@ -108,7 +111,7 @@ describe("API", () => {
         });
       });
     });
-    describe.only("/api/articles", () => {
+    describe("/api/articles", () => {
       describe("GET:/api/articles/:articleid", () => {
         describe("Status:200", () => {
           it("Recieves a status of 200", () => {
@@ -170,7 +173,7 @@ describe("API", () => {
           });
         });
 
-        describe("GET: articles/article:id/comments", () => {
+        describe.only("GET: articles/article:id/comments", () => {
           describe("Status: 200", () => {
             it("Recieve a status of 200", () => {
               return request(app)
@@ -199,6 +202,26 @@ describe("API", () => {
                     "author",
                     "votes"
                   );
+                });
+            });
+            it("The default sort order of the comments is created_at, in descedning order", () => {
+              return request(app)
+                .get("/api/articles/1/comments")
+                .expect(200)
+                .then(({ body }) => {
+                  expect(body.commentsArray).to.be.sortedBy("created_at", {
+                    descending: true
+                  });
+                });
+            });
+            it("Can accept a order by query that sorts the comments by any valid comments, and defaults the order to descending", () => {
+              return request(app)
+                .get("/api/articles/1/comments?sort_by=votes")
+                .expect(200)
+                .then(({ body }) => {
+                  expect(body.commentsArray).to.be.sortedBy("votes", {
+                    descending: true
+                  });
                 });
             });
           });

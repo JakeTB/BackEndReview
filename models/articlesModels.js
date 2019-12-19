@@ -20,11 +20,12 @@ exports.postArticleComments = (article_id, author, body) => {
     .returning("*");
 };
 
-exports.getArticleComments = article_id => {
+exports.getArticleComments = (article_id, sort_by) => {
   return connection
     .select("*")
     .from("comments")
-    .where({ article_id });
+    .where({ article_id })
+    .orderBy(sort_by || "created_at", "desc");
 };
 exports.getAllArticles = () => {
   return connection.select("*").from("articles");
