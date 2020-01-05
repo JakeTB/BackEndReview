@@ -6,13 +6,14 @@ const {
   sendArticleComments,
   sendAllArticles
 } = require("../controllers/articlesControllers");
+const { Error405 } = require("../errors");
 articlesRouter
   .route("/:article_id")
   .get(sendArticleInfo)
-  .patch(updateArticleInfo);
+  .patch(updateArticleInfo).all(Error405);
 articlesRouter
   .route("/:article_id/comments")
   .get(sendArticleComments)
-  .post(createArticleComment);
-articlesRouter.route("/").get(sendAllArticles);
+  .post(createArticleComment).all(Error405);
+articlesRouter.route("/").get(sendAllArticles).all(Error405);
 module.exports = { articlesRouter };

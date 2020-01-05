@@ -29,8 +29,9 @@ describe("API", () => {
           });
       });
     });
+   
   });
-  describe("/api", () => {
+  describe.only("/api", () => {
     describe("/topics", () => {
       describe("GET:/api/topics", () => {
         it("Status:200", () => {
@@ -62,7 +63,7 @@ describe("API", () => {
                 });
             });
           });
-          describe.only("Status: 405", () => {
+          describe("Status: 405", () => {
             it("If passed an invalid method will response with a 405 error", () => {
               return request(app)
                 .patch("/api/topics")
@@ -88,12 +89,12 @@ describe("API", () => {
               .get("/api/users/lurker")
               .expect(200)
               .then(({ body }) => {
-                expect(body.userInfo[0]).to.have.keys(
+                expect(body.user[0]).to.have.keys(
                   "username",
                   "name",
                   "avatar_url"
                 );
-                expect(body.userInfo[0].username).to.equal("lurker");
+                expect(body.user[0].username).to.equal("lurker");
               });
           });
         });
@@ -114,10 +115,15 @@ describe("API", () => {
             });
             it("Sends 404 because user does not exist", () => {
               return request(app)
-                .get("/api/user/turtlesmurtle")
+                .get("/api/user/not-a-user")
                 .expect(404);
             });
           });
+          describe("Status: 405", ()=>{
+            it("If passed an invalid method should return with a status of 405",()=>{
+              return request(app).put("/api/users/butter_bridge").expect(405)
+            })
+          })
         });
       });
     });
@@ -134,8 +140,9 @@ describe("API", () => {
               .get("/api/articles/1")
               .expect(200)
               .then(({ body }) => {
-                expect(body.articleObject[0]).to.be.a("object");
-                expect(body.articleObject[0]).to.contain.keys(
+             
+                expect(body.article[0]).to.be.a("object");
+                expect(body.article[0]).to.contain.keys(
                   "title",
                   "body",
                   "votes",
@@ -148,15 +155,16 @@ describe("API", () => {
               .get("/api/articles/1")
               .expect(200)
               .then(({ body }) => {
-                expect(body.articleObject[0].article_id).to.equal(1);
+                expect(body.article[0].article_id).to.equal(1);
               });
           });
+          
         });
         describe("Errors:", () => {
           describe("Status 404", () => {
             it("If the requested article does not exist, but it is a valid response recieves a 404", () => {
               return request(app)
-                .get("/api/articles/200")
+                .get("/api/articles/1000")
                 .expect(404);
             });
             it("Recieves an error message detailing that the article has not been found", () => {
@@ -186,6 +194,13 @@ describe("API", () => {
             });
           });
         });
+        describe("Status 405",()=>{
+          it("If sent an invalid method returns with a 405",()=>{
+            return request(app)
+                .put("/api/articles/hello")
+                .expect(405);
+          })
+        })
       });
       describe("GET:/api/articles", () => {
         describe("Status:200", () => {
@@ -199,7 +214,7 @@ describe("API", () => {
               .get("/api/articles")
               .expect(200)
               .then(({ body }) => {
-                expect(body.articleArray).to.be.an("array");
+                expect(body.articles).to.be.an("array");
               });
           });
           it("article objects should have the correct keys", () => {
@@ -207,7 +222,7 @@ describe("API", () => {
               .get("/api/articles")
               .expect(200)
               .then(({ body }) => {
-                expect(body.articleArray[0]).to.contain.keys(
+                expect(body.articles[0]).to.contain.keys(
                   "title",
                   "body",
                   "votes",
@@ -215,24 +230,37 @@ describe("API", () => {
                 );
               });
           });
+          it("The default sort should be'created_at'",()=>{
+            return request(app)
+              .get("/api/articles")
+              .expect(200)
+              .then(({ body }) => {
+                expect(body.articles[0].article_id).to.equal(1)
+              });
+          })
+          it("The articles response should have a comment count that details how many comments each article has",()=>{
+            return request(app)
+              .get("/api/articles")
+              .expect(200)
+          })
         });
       });
       describe("PATCH:/articles/;article_Id", () => {
         describe("Status:200", () => {
-          it("Recieves a status of of 201", () => {
+          it("Recieves a status of of 200", () => {
             return request(app)
               .patch("/api/articles/1")
               .send({ inc_votes: 1 })
-              .expect(201);
+              .expect(200);
           });
           it("Updates the article object and returns the new one", () => {
             return request(app)
               .patch("/api/articles/1")
               .send({ inc_votes: 1 })
-              .expect(201)
+              .expect(200)
               .then(({ body }) => {
-                expect(body.updatedArticle[0]).to.be.an("object");
-                expect(body.updatedArticle[0]).to.contain.keys(
+                expect(body.article[0]).to.be.an("object");
+                expect(body.article[0]).to.contain.keys(
                   "title",
                   "body",
                   "votes",
@@ -409,7 +437,7 @@ describe("API", () => {
               .get("/api/articles/1/comments")
               .expect(200)
               .then(({ body }) => {
-                expect(body.commentsArray[0]).to.contain.keys(
+                expect(body.comments[0]).to.contain.keys(
                   "comment_id",
                   "author",
                   "votes"
@@ -421,7 +449,7 @@ describe("API", () => {
               .get("/api/articles/1/comments")
               .expect(200)
               .then(({ body }) => {
-                expect(body.commentsArray[0]).to.contain.keys(
+                expect(body.comments[0]).to.contain.keys(
                   "comment_id",
                   "author",
                   "votes"
@@ -433,7 +461,7 @@ describe("API", () => {
               .get("/api/articles/1/comments")
               .expect(200)
               .then(({ body }) => {
-                expect(body.commentsArray).to.be.sortedBy("created_at", {
+                expect(body.comments).to.be.sortedBy("created_at", {
                   descending: true
                 });
               });
@@ -443,12 +471,49 @@ describe("API", () => {
               .get("/api/articles/1/comments?sort_by=votes")
               .expect(200)
               .then(({ body }) => {
-                expect(body.commentsArray).to.be.sortedBy("votes", {
+                expect(body.comments).to.be.sortedBy("votes", {
                   descending: true
                 });
               });
           });
+          it("Accepts an order query of asc ",()=>{
+            return request(app)
+            .get("/api/articles/1/comments?order=desc")
+            .expect(200)
+            .then(({ body }) => {
+              expect(body.comments).to.be.sortedBy("created_at", {
+                descending: true
+              });
+            });
+          })
+          it("Accepts an order query of asc ",()=>{
+            return request(app)
+            .get("/api/articles/1/comments?order=asc")
+            .expect(200)
+            .then(({ body }) => {
+              expect(body.comments).to.be.sortedBy("created_at", {
+                ascending: true
+              });
+            });
+          })
+          it("When the article exists but has no comments returns an empty array",()=>{
+            return request(app)
+            .get("/api/articles/2/comments").expect(200).then(({body})=>{
+              expect(body.comments).to.eql([])
+            })
+          })
         });
+        describe("Errors",()=>{
+          describe("Status:404",()=>{
+
+          
+          })
+          describe("Status: 405",()=>{
+            it("When passed an invalid method, returns with a 405",()=>{
+              return request(app).put("/api/articles/1/comments").expect(405)
+            })
+          })
+        })
       });
     });
   });
@@ -542,6 +607,11 @@ describe("API", () => {
               .expect(400);
           });
         });
+        describe("Status 405:",()=>{
+          it("If passed an invalid method should return with the status code 405",()=>{
+            return request(app).put("/api/comments/1").expect(405)
+          })
+        })
       });
     });
     describe("DELETE:/api/comments/:comment_id", () => {
