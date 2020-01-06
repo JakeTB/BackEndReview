@@ -13,6 +13,15 @@ after(() => {
   return knex.destroy();
 });
 describe("API", () => {
+  describe("GET: /api", () => {
+    xdescribe("Status:200", () => {
+      it("Returns with a status of 200", () => {
+        return request(app)
+          .get("/api")
+          .expect(200);
+      });
+    });
+  });
   describe("API-errors:", () => {
     describe("Status: 404", () => {
       it("Recieves a status of 404", () => {
@@ -29,9 +38,8 @@ describe("API", () => {
           });
       });
     });
-   
   });
-  describe.only("/api", () => {
+  describe("/api", () => {
     describe("/topics", () => {
       describe("GET:/api/topics", () => {
         it("Status:200", () => {
@@ -119,11 +127,13 @@ describe("API", () => {
                 .expect(404);
             });
           });
-          describe("Status: 405", ()=>{
-            it("If passed an invalid method should return with a status of 405",()=>{
-              return request(app).put("/api/users/butter_bridge").expect(405)
-            })
-          })
+          describe("Status: 405", () => {
+            it("If passed an invalid method should return with a status of 405", () => {
+              return request(app)
+                .put("/api/users/butter_bridge")
+                .expect(405);
+            });
+          });
         });
       });
     });
@@ -140,7 +150,6 @@ describe("API", () => {
               .get("/api/articles/1")
               .expect(200)
               .then(({ body }) => {
-             
                 expect(body.article[0]).to.be.a("object");
                 expect(body.article[0]).to.contain.keys(
                   "title",
@@ -158,7 +167,6 @@ describe("API", () => {
                 expect(body.article[0].article_id).to.equal(1);
               });
           });
-          
         });
         describe("Errors:", () => {
           describe("Status 404", () => {
@@ -193,16 +201,16 @@ describe("API", () => {
                 });
             });
           });
-        });
-        describe("Status 405",()=>{
-          it("If sent an invalid method returns with a 405",()=>{
-            return request(app)
+          describe("Status 405", () => {
+            it("If sent an invalid method returns with a 405", () => {
+              return request(app)
                 .put("/api/articles/hello")
                 .expect(405);
-          })
-        })
+            });
+          });
+        });
       });
-      describe("GET:/api/articles", () => {
+      describe.only("GET:/api/articles", () => {
         describe("Status:200", () => {
           it("Recieves a status of 200", () => {
             return request(app)
@@ -230,19 +238,52 @@ describe("API", () => {
                 );
               });
           });
-          it("The default sort should be'created_at'",()=>{
+          it("The default sort should be'created_at' and the default order should be descending", () => {
             return request(app)
               .get("/api/articles")
               .expect(200)
               .then(({ body }) => {
-                expect(body.articles[0].article_id).to.equal(1)
+                expect(body.articles[0].article_id).to.equal(1);
+                expect(body.articles).to.be.sortedBy("created_at", {
+                  descending: true
+                });
               });
-          })
-          it("The articles response should have a comment count that details how many comments each article has",()=>{
+          });
+
+          it("Can accept a sort_by query with a value of any column name", () => {
             return request(app)
-              .get("/api/articles")
+              .get("/api/articles?sort_by=author")
               .expect(200)
-          })
+              .then(({ body }) => {
+                expect(body.articles).to.be.sortedBy("author", {
+                  descending: true
+                });
+              });
+          });
+          it("Can accept a order by query or either desc or asc", () => {
+            return request(app)
+              .get("/api/articles?order=asc")
+              .expect(200)
+              .then(({ body }) => {
+                expect(body.articles).to.be.sortedBy("created_at", {
+                  ascending: true
+                });
+              });
+          });
+          it("Accept an author query of any auhtor that exisists in the database", () => {
+            return request(app)
+              .get("/api/articles?author=butter_bridge")
+              .expect(200)
+              .then(({ body }) => {
+                expect(body.articles[0].author).to.equal("butter_bridge");
+                expect(body.articles[1].author).to.equal("butter_bridge");
+              });
+          });
+          it("Accept an topic query of any topic slug that exsists in the database", () => {
+            return request(app)
+              .get("/api/articles?topic=butter_bridge")
+              .expect(200);
+          });
         });
       });
       describe("PATCH:/articles/;article_Id", () => {
@@ -456,7 +497,7 @@ describe("API", () => {
                 );
               });
           });
-          it("The default sort order of the comments is created_at, in descedning order", () => {
+          it("The default sort order of the comments is created_at, in descendning order", () => {
             return request(app)
               .get("/api/articles/1/comments")
               .expect(200)
@@ -476,44 +517,45 @@ describe("API", () => {
                 });
               });
           });
-          it("Accepts an order query of asc ",()=>{
+          it("Accepts an order query of asc ", () => {
             return request(app)
-            .get("/api/articles/1/comments?order=desc")
-            .expect(200)
-            .then(({ body }) => {
-              expect(body.comments).to.be.sortedBy("created_at", {
-                descending: true
+              .get("/api/articles/1/comments?order=desc")
+              .expect(200)
+              .then(({ body }) => {
+                expect(body.comments).to.be.sortedBy("created_at", {
+                  descending: true
+                });
               });
-            });
-          })
-          it("Accepts an order query of asc ",()=>{
+          });
+          it("Accepts an order query of asc ", () => {
             return request(app)
-            .get("/api/articles/1/comments?order=asc")
-            .expect(200)
-            .then(({ body }) => {
-              expect(body.comments).to.be.sortedBy("created_at", {
-                ascending: true
+              .get("/api/articles/1/comments?order=asc")
+              .expect(200)
+              .then(({ body }) => {
+                expect(body.comments).to.be.sortedBy("created_at", {
+                  ascending: true
+                });
               });
-            });
-          })
-          it("When the article exists but has no comments returns an empty array",()=>{
+          });
+          it("When the article exists but has no comments returns an empty array", () => {
             return request(app)
-            .get("/api/articles/2/comments").expect(200).then(({body})=>{
-              expect(body.comments).to.eql([])
-            })
-          })
+              .get("/api/articles/2/comments")
+              .expect(200)
+              .then(({ body }) => {
+                expect(body.comments).to.eql([]);
+              });
+          });
         });
-        describe("Errors",()=>{
-          describe("Status:404",()=>{
-
-          
-          })
-          describe("Status: 405",()=>{
-            it("When passed an invalid method, returns with a 405",()=>{
-              return request(app).put("/api/articles/1/comments").expect(405)
-            })
-          })
-        })
+        describe("Errors", () => {
+          describe("Status:404", () => {});
+          describe("Status: 405", () => {
+            it("When passed an invalid method, returns with a 405", () => {
+              return request(app)
+                .put("/api/articles/1/comments")
+                .expect(405);
+            });
+          });
+        });
       });
     });
   });
@@ -607,11 +649,13 @@ describe("API", () => {
               .expect(400);
           });
         });
-        describe("Status 405:",()=>{
-          it("If passed an invalid method should return with the status code 405",()=>{
-            return request(app).put("/api/comments/1").expect(405)
-          })
-        })
+        describe("Status 405:", () => {
+          it("If passed an invalid method should return with the status code 405", () => {
+            return request(app)
+              .put("/api/comments/1")
+              .expect(405);
+          });
+        });
       });
     });
     describe("DELETE:/api/comments/:comment_id", () => {

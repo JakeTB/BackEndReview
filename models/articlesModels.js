@@ -1,13 +1,11 @@
 const connection = require("../db/connection");
 exports.getArticleInfo = article_id => {
-
   return connection
     .select("*")
     .from("articles")
     .where({ article_id })
- 
-    .then(response => {
 
+    .then(response => {
       if (!response.length) {
         return Promise.reject({
           status: 404,
@@ -76,15 +74,25 @@ exports.postArticleComments = (article_id, author, body) => {
 };
 
 exports.getArticleComments = (article_id, query) => {
-
- const {sort_by, order} = query
+  const { sort_by, order } = query;
   return connection
     .select("*")
     .from("comments")
     .where({ article_id })
     .orderBy(sort_by || "created_at", order || "desc");
 };
-exports.getAllArticles = () => {
-  return connection.select("*").from("articles").orderBy("created_at", "desc");
- 
+exports.getAllArticles = query => {
+  console.log(query);
+  const { sort_by, order, author } = query;
+  if (author) {
+    return connection
+      .select("*")
+      .from("articles")
+      .where("author", author)
+      .orderBy(sort_by || "created_at", order || "desc");
+  }
+  return connection
+    .select("*")
+    .from("articles")
+    .orderBy(sort_by || "created_at", order || "desc");
 };

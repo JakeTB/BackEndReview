@@ -10,7 +10,6 @@ exports.sendArticleInfo = (req, res, next) => {
   const { article_id } = req.params;
   getArticleInfo(article_id)
     .then(article => {
-
       res.status(200).send({ article });
     })
     .catch(next);
@@ -20,7 +19,6 @@ exports.updateArticleInfo = (req, res, next) => {
 
   patchArticleInfo(article_id, req.body)
     .then(article => {
-      
       res.status(200).send({ article });
     })
     .catch(next);
@@ -36,19 +34,17 @@ exports.createArticleComment = (req, res, next) => {
     .catch(next);
 };
 exports.sendArticleComments = (req, res, next) => {
-
   const { article_id } = req.params;
   getArticleComments(article_id, req.query)
     .then(comments => {
-    
-      res.status(200).send({  comments });
+      res.status(200).send({ comments });
     })
     .catch(next);
 };
 exports.sendAllArticles = (req, res, next) => {
-  getAllArticles()
+  getAllArticles(req.query)
     .then(articles => {
-
+      console.log(articles);
       res.status(200).send({ articles });
     })
     .catch(next);
