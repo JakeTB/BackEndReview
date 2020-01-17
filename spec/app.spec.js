@@ -104,12 +104,15 @@ describe("API", () => {
               .get("/api/users/lurker")
               .expect(200)
               .then(({ body }) => {
-                expect(body.user[0]).to.have.keys(
-                  "username",
-                  "name",
-                  "avatar_url"
-                );
-                expect(body.user[0].username).to.equal("lurker");
+                expect(body.user.user.username).to.equal("lurker");
+              });
+          });
+          it("Sends the user to the client in an object with a key of user", () => {
+            return request(app)
+              .get("/api/users/butter_bridge")
+              .expect(200)
+              .then(({ body }) => {
+                expect(body.user).to.be.a("Object");
               });
           });
         });
@@ -130,7 +133,7 @@ describe("API", () => {
             });
             it("Sends 404 because user does not exist", () => {
               return request(app)
-                .get("/api/user/not-a-user")
+                .get("/api/users/not-a-username")
                 .expect(404);
             });
           });
@@ -419,6 +422,12 @@ describe("API", () => {
                 .send({ username: "butter_bridge", body: "He's a swell guy" })
                 .expect(404);
             });
+            it.only("If sent a post request for a valid article ID that does not exist", () => {
+              return request(app)
+                .post("/api/articles/10000/comments")
+                .expect(404)
+                .send({ username: "butter_bridge", body: "He's a swell guy" });
+            });
           });
           describe("Status: 400", () => {
             it("If sent a correct route wth a resource that does not exist returns with a 400", () => {
@@ -614,7 +623,7 @@ describe("API", () => {
             .send({ inc_votes: 2 })
             .expect(200)
             .then(({ body }) => {
-              expect(body.comment[0].comment_id).to.equal(1);
+              expect(body.comment.comment_id).to.equal(1);
             });
         });
         it("Should increase the vote count but the passed property", () => {
@@ -623,7 +632,7 @@ describe("API", () => {
             .send({ inc_votes: 2 })
             .expect(200)
             .then(({ body }) => {
-              expect(body.comment[0].votes).to.equal(18);
+              expect(body.comment.votes).to.equal(18);
             });
         });
         it("Should decrease the vote count but the passed property", () => {
@@ -632,16 +641,16 @@ describe("API", () => {
             .send({ inc_votes: -2 })
             .expect(200)
             .then(({ body }) => {
-              expect(body.comment[0].votes).to.equal(14);
+              expect(body.comment.votes).to.equal(14);
             });
         });
         it("When sent a body with no inc_votes property should send back an unchaged comment", () => {
           return request(app)
             .patch("/api/comments/1")
-            .send({})
+            .send({ hello: 0 })
             .expect(200)
             .then(({ body }) => {
-              expect(body.comment[0].votes).to.equal(16);
+              expect(body.comment.votes).to.equal(16);
             });
         });
       });

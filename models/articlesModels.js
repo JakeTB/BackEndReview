@@ -17,7 +17,7 @@ exports.getArticleInfo = article_id => {
 };
 exports.patchArticleInfo = (article_id, body) => {
   if (Object.keys(body).includes("inc_votes")) {
-    const { inc_votes } = body;
+    const { inc_votes = 0 } = body;
     return connection
       .increment("votes", inc_votes)
       .from("articles")
@@ -41,6 +41,7 @@ exports.patchArticleInfo = (article_id, body) => {
 };
 exports.postArticleComments = (article_id, author, body) => {
   const insertObj = { article_id, author, body };
+  console.log("Here");
   if (!author && !body) {
     return Promise.reject({
       status: 400,
@@ -63,9 +64,11 @@ exports.postArticleComments = (article_id, author, body) => {
     .insert(insertObj)
     .returning("*")
     .then(response => {
+      console.log(response, "<<<<<<RESPONSE");
       if (!response.length) {
+        console.log("REJECTED");
         return Promise.reject({
-          status: 400,
+          status: 404,
           message: `No article found for article id ${article_id}`
         });
       }
