@@ -44,7 +44,6 @@ exports.sendArticleComments = (req, res, next) => {
 exports.sendAllArticles = (req, res, next) => {
   getAllArticles(req.query)
     .then(articles => {
-      console.log(articles);
       res.status(200).send({ articles });
     })
     .catch(next);

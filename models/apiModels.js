@@ -1,3 +1,4 @@
+const connection = require("../db/connection");
 exports.getAllEndpoints = () => {
-  console.log("Inside controller");
+  return connection.select("*").from("articles");
 };

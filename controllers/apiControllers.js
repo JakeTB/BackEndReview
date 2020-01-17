@@ -1,6 +1,5 @@
 const { getAllEndpoints } = require("../models/apiModels");
 
-exports.sendAllEndpoints = () => {
-  console.log("Inside controller");
-  getAllEndpoints().then();
+exports.sendAllEndpoints = (req, res, next) => {
+  res.sendStatus(200);
 };

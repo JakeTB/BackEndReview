@@ -82,7 +82,6 @@ exports.getArticleComments = (article_id, query) => {
     .orderBy(sort_by || "created_at", order || "desc");
 };
 exports.getAllArticles = query => {
-  console.log(query);
   const { sort_by, order, author } = query;
   if (author) {
     return connection

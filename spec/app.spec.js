@@ -14,7 +14,7 @@ after(() => {
 });
 describe("API", () => {
   describe("GET: /api", () => {
-    xdescribe("Status:200", () => {
+    describe("Status:200", () => {
       it("Returns with a status of 200", () => {
         return request(app)
           .get("/api")
@@ -36,6 +36,13 @@ describe("API", () => {
           .then(({ body }) => {
             expect(body.message).to.equal("Route not found");
           });
+      });
+    });
+    describe("Status: 405", () => {
+      it("Recieves a status of 405", () => {
+        return request(app)
+          .delete("/api")
+          .expect(405);
       });
     });
   });
@@ -210,7 +217,7 @@ describe("API", () => {
           });
         });
       });
-      describe.only("GET:/api/articles", () => {
+      describe("GET:/api/articles", () => {
         describe("Status:200", () => {
           it("Recieves a status of 200", () => {
             return request(app)
@@ -628,6 +635,15 @@ describe("API", () => {
               expect(body.comment[0].votes).to.equal(14);
             });
         });
+        it("When sent a body with no inc_votes property should send back an unchaged comment", () => {
+          return request(app)
+            .patch("/api/comments/1")
+            .send({})
+            .expect(200)
+            .then(({ body }) => {
+              expect(body.comment[0].votes).to.equal(16);
+            });
+        });
       });
       describe("Errors", () => {
         describe("Status:404", () => {
@@ -636,10 +652,16 @@ describe("API", () => {
               .patch("/api/coments/1")
               .expect(404);
           });
-          xit("Requested resource does not exist", () => {
+          it("Requested resource does not exist", () => {
             return request(app)
               .patch("/api/comments/1000")
               .expect(404);
+          });
+          it("Request an article that does not exist with a correct body", () => {
+            return request(app)
+              .patch("/api/comments/1000")
+              .expect(404)
+              .send({ inc_votes: 2 });
           });
         });
         describe("Status:400", () => {
@@ -671,6 +693,11 @@ describe("API", () => {
           it("Recieves a status code of 404", () => {
             return request(app)
               .delete("/api/commmments/1")
+              .expect(404);
+          });
+          it("Recieves a 404 error when delete contains a vaid comment_id that does not exist", () => {
+            return request(app)
+              .delete("/api/comments/1000")
               .expect(404);
           });
         });
