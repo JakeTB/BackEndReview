@@ -1,3 +1,4 @@
+const { DB_URL } = process.env;
 const ENV = process.env.NODE_ENV || "development";
 
 const baseConfig = {
@@ -16,13 +17,16 @@ const customConfig = {
       database: "nc_news",
       user: "jake",
       password: "1234psql"
-    }
-  },
-  test: {
-    connection: {
-      database: "nc_news_test",
-      user: "jake",
-      password: "1234psql"
+    },
+    production: {
+      connection: `${DB_URL}?ssl=true`
+    },
+    test: {
+      connection: {
+        database: "nc_news_test",
+        user: "jake",
+        password: "1234psql"
+      }
     }
   }
 };
