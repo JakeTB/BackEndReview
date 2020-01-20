@@ -422,7 +422,7 @@ describe("API", () => {
                 .send({ username: "butter_bridge", body: "He's a swell guy" })
                 .expect(404);
             });
-            it.only("If sent a post request for a valid article ID that does not exist", () => {
+            it("If sent a post request for a valid article ID that does not exist", () => {
               return request(app)
                 .post("/api/articles/10000/comments")
                 .expect(404)
