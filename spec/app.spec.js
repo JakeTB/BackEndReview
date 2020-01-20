@@ -221,7 +221,7 @@ describe("API", () => {
         });
       });
       describe("GET:/api/articles", () => {
-        describe("Status:200", () => {
+        describe.only("Status:200", () => {
           it("Recieves a status of 200", () => {
             return request(app)
               .get("/api/articles")
@@ -291,8 +291,13 @@ describe("API", () => {
           });
           it("Accept an topic query of any topic slug that exsists in the database", () => {
             return request(app)
-              .get("/api/articles?topic=butter_bridge")
-              .expect(200);
+              .get("/api/articles?topic=mitch")
+              .expect(200)
+              .then(({ body: { articles } }) => {
+                expect(articles[0].topic).to.equal("mitch");
+                expect(articles[3].topic).to.equal("mitch");
+                expect(articles[5].topic).to.equal("mitch");
+              });
           });
         });
       });

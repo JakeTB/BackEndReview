@@ -85,14 +85,24 @@ exports.getArticleComments = (article_id, query) => {
     .orderBy(sort_by || "created_at", order || "desc");
 };
 exports.getAllArticles = query => {
-  const { sort_by, order, author } = query;
+  const { sort_by, order, author, topic } = query;
+
   if (author) {
     return connection
       .select("*")
       .from("articles")
       .where("author", author)
+
       .orderBy(sort_by || "created_at", order || "desc");
   }
+  if (topic) {
+    return connection
+      .select("*")
+      .from("articles")
+      .where("topic", topic)
+      .orderBy(sort_by || "created_at", order || "desc");
+  }
+
   return connection
     .select("*")
     .from("articles")
