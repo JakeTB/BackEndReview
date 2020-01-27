@@ -220,8 +220,8 @@ describe("API", () => {
           });
         });
       });
-      describe("GET:/api/articles", () => {
-        describe.only("Status:200", () => {
+      describe.only("GET:/api/articles", () => {
+        describe("Status:200", () => {
           it("Recieves a status of 200", () => {
             return request(app)
               .get("/api/articles")
@@ -297,6 +297,22 @@ describe("API", () => {
                 expect(articles[0].topic).to.equal("mitch");
                 expect(articles[3].topic).to.equal("mitch");
                 expect(articles[5].topic).to.equal("mitch");
+              });
+          });
+          it("Tests that the default number of responses served is 10", () => {
+            return request(app)
+              .get("/api/articles")
+              .expect(200)
+              .then(({ body: { articles } }) => {
+                expect(articles.length).to.equal(10);
+              });
+          });
+          it.only("Tests that the limit can be set by the query", () => {
+            return request(app)
+              .get("/api/articles?limit=5")
+              .expect(200)
+              .then(({ body: { articles } }) => {
+                expect(articles.length).to.equal(5);
               });
           });
         });

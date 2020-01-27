@@ -64,9 +64,7 @@ exports.postArticleComments = (article_id, author, body) => {
     .insert(insertObj)
     .returning("*")
     .then(response => {
-      console.log(response, "<<<<<<RESPONSE");
       if (!response.length) {
-        console.log("REJECTED");
         return Promise.reject({
           status: 404,
           message: `No article found for article id ${article_id}`
@@ -85,26 +83,28 @@ exports.getArticleComments = (article_id, query) => {
     .orderBy(sort_by || "created_at", order || "desc");
 };
 exports.getAllArticles = query => {
-  const { sort_by, order, author, topic } = query;
-
+  const { sort_by, order, author, topic, limit, p } = query;
+  console.log("Hello");
   if (author) {
     return connection
       .select("*")
       .from("articles")
       .where("author", author)
-
-      .orderBy(sort_by || "created_at", order || "desc");
+      .orderBy(sort_by || "created_at", order || "desc")
+      .limit(limit || 10);
   }
   if (topic) {
     return connection
       .select("*")
       .from("articles")
       .where("topic", topic)
-      .orderBy(sort_by || "created_at", order || "desc");
+      .orderBy(sort_by || "created_at", order || "desc")
+      .limit(limit || 10);
   }
 
   return connection
     .select("*")
     .from("articles")
-    .orderBy(sort_by || "created_at", order || "desc");
+    .orderBy(sort_by || "created_at", order || "desc")
+    .limit(limit || 10);
 };
